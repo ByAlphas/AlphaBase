@@ -1,0 +1,5 @@
+node_modules/
+*.log
+backups/
+testdb.json
+alpha.db.json
