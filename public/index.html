@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlphaBase Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1.5.10/css/pico.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    body { padding: 2rem; }
+    .key { font-weight: bold; }
+    .value { word-break: break-all; }
+    .dbfile-select { margin-bottom: 1rem; }
+    .stats { margin-top: 2rem; }
+    .search-box { margin-bottom: 1rem; }
+  </style>
+</head>
+<body x-data="dashboard">
+  <h1>AlphaBase Dashboard</h1>
+  <div class="dbfile-select">
+    <label>Database File:
+      <select x-model="selectedFile" @change="switchFile">
+        <template x-for="file in files" :key="file">
+          <option x-text="file"></option>
+        </template>
+      </select>
+    </label>
+  </div>
+  <div class="search-box">
+    <input type="text" x-model="search" placeholder="Search..." @input="doSearch">
+    <button @click="doSearch">Search</button>
+    <button @click="loadAll">Clear Search</button>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Key</th><th>Value</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <template x-for="(value, key) in entries" :key="key">
+        <tr>
+          <td class="key" x-text="key"></td>
+          <td class="value"><pre x-text="JSON.stringify(value, null, 2)"></pre></td>
+          <td>
+            <button @click="editEntry(key, value)">Edit</button>
+            <button @click="deleteEntry(key)">Delete</button>
+          </td>
+        </tr>
+      </template>
+    </tbody>
+  </table>
+  <div style="margin-top:2rem">
+    <h3>Add / Edit Entry</h3>
+    <form @submit.prevent="saveEntry">
+      <input type="text" x-model="editKey" placeholder="Key" required>
+      <textarea x-model="editValue" placeholder="Value (JSON)" required></textarea>
+      <button type="submit">Save</button>
+    </form>
+  </div>
+  <div class="stats">
+    <h3>Stats</h3>
+    <pre x-text="JSON.stringify(stats, null, 2)"></pre>
+    <button @click="getStats">Refresh Stats</button>
+    <button @click="triggerBackup">Backup</button>
+    <button @click="doExport">Export</button>
+    <button @click="clearAll">Clear All</button>
+  </div>
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('dashboard', () => ({
+        files: [],
+        selectedFile: '',
+        entries: {},
+        search: '',
+        editKey: '',
+        editValue: '',
+        stats: {},
+        async fetchFiles() {
+          const res = await fetch('/api/files');
+          this.files = await res.json();
+          this.selectedFile = this.files[0] || '';
+        },
+        async switchFile() {
+          await fetch('/api/switch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file: this.selectedFile })
+          });
+          this.loadAll();
+          this.getStats();
+        },
+        async loadAll() {
+          const res = await fetch('/api/all');
+          this.entries = await res.json();
+        },
+        async doSearch() {
+          if (!this.search) return this.loadAll();
+          const res = await fetch('/api/search?q=' + encodeURIComponent(this.search));
+          this.entries = await res.json();
+        },
+        editEntry(key, value) {
+          this.editKey = key;
+          this.editValue = JSON.stringify(value, null, 2);
+        },
+        async saveEntry() {
+          let val;
+          try {
+            val = JSON.parse(this.editValue);
+          } catch {
+            alert('Value must be valid JSON');
+            return;
+          }
+          await fetch('/api/set', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: this.editKey, value: val })
+          });
+          this.loadAll();
+          this.getStats();
+        },
+        async deleteEntry(key) {
+          await fetch('/api/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key })
+          });
+          this.loadAll();
+          this.getStats();
+        },
+        async clearAll() {
+          await fetch('/api/clear', { method: 'POST' });
+          this.loadAll();
+          this.getStats();
+        },
+        async getStats() {
+          const res = await fetch('/api/stats');
+          this.stats = await res.json();
+        },
+        async triggerBackup() {
+          const res = await fetch('/api/backup', { method: 'POST' });
+          const data = await res.json();
+          alert('Backup created: ' + data.backupPath);
+        },
+        async doExport() {
+          const res = await fetch('/api/export');
+          const data = await res.json();
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = this.selectedFile.replace('.json', '-export.json');
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        async init() {
+          await this.fetchFiles();
+          await this.loadAll();
+          await this.getStats();
+        }
+      }));
+      Alpine.start();
+    });
+  </script>
+</body>
+</html>
