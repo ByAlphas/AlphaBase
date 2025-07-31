@@ -4,11 +4,42 @@
 
 ---
 
+## Changelog (Summary)
+
+### [2.0.0] - 2025-07-31
+- DES, TripleDES, Rabbit, Base64 encryption support (selectable)
+- Multi-database management (AlphaBaseManager)
+- Scheduled cleanup and auto-backup features
+- Transaction support (begin, commit, rollback, atomic batch)
+- Export/import with optional encryption (auto-decrypt on import)
+- CLI: All features accessible via command line and interactive mode
+- All code and comments translated to English
+- Improved error handling and test coverage
+- Main file renamed to `alpha.js`, types to `alpha.d.ts`
+- Scripts extended: `test:watch`, `test:coverage`, `lint`, `type-check`
+- Circular reference issues in history fixed
+- Sync/async method consistency improved
+
+### [1.1.3] - 2025-07-24
+- Encrypted JSON file format wrapper for better compatibility
+- Backup and export improvements
+- CLI enhancements
+- Minor bug fixes and improved error messages
+
+### [1.1.0] - 2025-07-23
+- Initial CLI tool
+- AES and XOR encryption support
+- TTL (Time-To-Live) for keys
+- JSON schema validation
+- Improved documentation and examples
+
+---
+
 ## Features
 
 - **File-based key-value database** (JSON storage)
 - **Synchronous and asynchronous API**
-- **Encryption support**: AES, XOR, or None
+- **Encryption support**: AES, DES, TripleDES, Rabbit, XOR, Base64, or None
 - **TTL (Time-To-Live) for temporary keys**
 - **JSON Schema validation**
 - **Automatic and manual backup**
@@ -33,64 +64,73 @@ npm install alphabase
 const AlphaBase = require('alphabase');
 
 // AES encrypted database
-const db = new AlphaBase({ filePath: './mydb.json', password: 'mySecretPassword', encryption: 'AES' });
+const dbAes = new AlphaBase({ filePath: './mydb.json', password: 'mySecretPassword', encryption: 'AES' });
+
+// DES encryption
+const dbDes = new AlphaBase({ filePath: './des.json', password: 'mySecretPassword', encryption: 'DES' });
+
+// TripleDES encryption
+const dbTripleDes = new AlphaBase({ filePath: './tripledes.json', password: 'mySecretPassword', encryption: 'TripleDES' });
+
+// Rabbit encryption
+const dbRabbit = new AlphaBase({ filePath: './rabbit.json', password: 'mySecretPassword', encryption: 'Rabbit' });
 
 // XOR encryption
 const dbXor = new AlphaBase({ filePath: './xor.json', password: 'mySecretPassword', encryption: 'XOR' });
+
+// Base64 encryption (no password required)
+const dbBase64 = new AlphaBase({ filePath: './base64.json', encryption: 'Base64' });
 
 // No encryption (None)
 const dbNone = new AlphaBase({ filePath: './plain.json', encryption: 'None' });
 
 // Add a key
-await db.set('foo', { bar: 123 });
-const value = await db.get('foo');
+await dbAes.set('foo', { bar: 123 });
+const value = await dbAes.get('foo');
 
 // Add a key with TTL (expires in 60 seconds)
-await db.set('tempKey', { foo: 'bar' }, { ttl: 60000 });
-console.log('Remaining time (ms):', db.getTTL('tempKey'));
+await dbAes.set('tempKey', { foo: 'bar' }, { ttl: 60000 });
+console.log('Remaining time (ms):', dbAes.getTTL('tempKey'));
 
 // Cleanup expired keys
-await db.cleanup();
+await dbAes.cleanup();
 
 // Get all keys
-const all = await db.all();
+const all = await dbAes.all();
 
 // Statistics
-const stats = await db.stats();
+const stats = await dbAes.stats();
 console.log(stats);
 
 // Import/Export
-await db.import({ a: 1, b: 2 });
-const exported = await db.export();
+await dbAes.import({ a: 1, b: 2 });
+const exported = await dbAes.export();
 
 // Export as string (includes TTL metadata)
-const exportedString = await db.export(true);
+const exportedString = await dbAes.export(true);
 
 // Import from encrypted JSON string
-await db.import(exportedString);
+await dbAes.import(exportedString);
 ```
 
 ---
 
 ## Encrypted JSON File Format
 
-> **Since version 1.1.3**, encrypted values are now stored in a valid JSON wrapper.
-> This improves compatibility with JSON parsers and backup systems.
-
-When encryption is enabled (AES or XOR), AlphaBase saves files using the following format:
+When encryption is enabled (AES, DES, TripleDES, Rabbit, XOR, Base64), AlphaBase saves files using the following format:
 
 ```json
 {
   "_encrypted": true,
-  "type": "AES",
-  "data": "U2FsdGVkX1+..."
+  "type": "AES", // or DES, TripleDES, Rabbit, XOR, Base64
+  "data": "...encrypted string..."
 }
 ```
 
-* `type`: The encryption method used (`AES` or `XOR`)
+* `type`: The encryption method used
 * `data`: The encrypted content, which contains a serialized object with `{ data, ttlMeta }`
 
-In unencrypted mode, or when no password is used, the structure is simpler:
+In unencrypted mode (`None`), or when no password is used:
 
 ```json
 {
@@ -99,7 +139,7 @@ In unencrypted mode, or when no password is used, the structure is simpler:
 }
 ```
 
-Backups and exported data also follow this format. If a file is encrypted and accessed without a valid password, it returns an empty object silently (no crash).
+Backups and exported data follow the same format. If a file is encrypted and accessed with an invalid password, it returns an empty object silently (without crashing).
 
 ---
 
@@ -211,4 +251,4 @@ See code comments for all available functions and options.
 
 ## License
 
-MIT
+BSD 2-Clause - see [LICENSE](LICENSE) file for details.

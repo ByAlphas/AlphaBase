@@ -1,4 +1,4 @@
-const AlphaBase = require('../index');
+const AlphaBase = require('../alpha');
 const path = require('path');
 const fs = require('fs');
 

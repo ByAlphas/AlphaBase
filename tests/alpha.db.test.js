@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const AlphaBase = require('../index');
+const AlphaBase = require('../alpha');
 
 describe('AlphaBase', () => {
   const testFile = path.resolve(__dirname, 'testdb.json');
