@@ -1,18 +1,18 @@
-#!/usr/bin/env node
-const AlphaBase = require('./index');
+const AlphaBase = require('./alpha');
+const AlphaBaseManager = require('./alpha').AlphaBaseManager || null;
 const path = require('path');
 const fs = require('fs');
 const inquirer = require('inquirer');
 const boxen = require('boxen');
 const chalk = require('chalk');
-const yargs = require('yargs');
-inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
+const yargs = require('yargs/yargs');
+
 
 function getDbFiles() {
   return fs.readdirSync(process.cwd()).filter(f => f.endsWith('.json'));
 }
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .option('file', {
     alias: 'f',
     describe: 'Veritabanı dosya yolu',
@@ -30,9 +30,11 @@ const argv = yargs
     type: 'boolean',
     default: false
   })
-  .help().argv;
+  .help()
+  .parse();
 
 let db = new AlphaBase({ filePath: path.resolve(argv.file), password: argv.password });
+let dbManager = AlphaBaseManager ? new AlphaBaseManager() : null;
 
 async function runInteractive() {
   let dbFile = argv.file;
@@ -52,7 +54,10 @@ async function runInteractive() {
       type: 'list',
       name: 'op',
       message: 'İşlem seçin:',
-      choices: ['get', 'set', 'delete', 'has', 'clear', 'all', 'stats', 'import', 'export', 'backup', 'exit']
+      choices: [
+        'get', 'set', 'delete', 'has', 'clear', 'all', 'stats', 'import', 'export', 'export-enc', 'import-enc',
+        'backup', 'begin', 'commit', 'rollback', 'transaction', 'start-cleanup', 'stop-cleanup',
+        'db-list', 'db-open', 'db-close', 'switch', 'exit']
     });
     if (op === 'exit') break;
     let key = '';
@@ -62,13 +67,10 @@ async function runInteractive() {
       const keys = Object.keys(db.allSync());
       if (op !== 'set') {
         const ans = await inquirer.prompt({
-          type: 'autocomplete',
+          type: 'list',
           name: 'key',
           message: 'Anahtar:',
-          source: (answersSoFar, input) => {
-            input = input || '';
-            return Promise.resolve(keys.filter(k => k.includes(input)));
-          }
+          choices: keys
         });
         key = ans.key;
       } else {
@@ -123,6 +125,119 @@ async function runInteractive() {
       db.importSync(value);
       result = chalk.green('Import successful');
     } else if (op === 'export') {
+    } else if (op === 'export-enc') {
+      // Export with encryption
+      const ans = await inquirer.prompt({
+        type: 'input',
+        name: 'collection',
+        message: 'Collection name:'
+      });
+      const fileAns = await inquirer.prompt({
+        type: 'input',
+        name: 'file',
+        message: 'Output file path:'
+      });
+      try {
+        db.exportCollection(ans.collection, fileAns.file, { encrypt: true });
+        result = chalk.green('Encrypted export successful');
+      } catch (e) {
+        result = chalk.red('Export failed: ' + e.message);
+      }
+    } else if (op === 'import-enc') {
+      // Import with auto-decrypt
+      const ans = await inquirer.prompt({
+        type: 'input',
+        name: 'collection',
+        message: 'Collection name:'
+      });
+      const fileAns = await inquirer.prompt({
+        type: 'input',
+        name: 'file',
+        message: 'Input file path:'
+      });
+      try {
+        db.importCollection(ans.collection, fileAns.file);
+        result = chalk.green('Encrypted import successful');
+      } catch (e) {
+        result = chalk.red('Import failed: ' + e.message);
+      }
+    } else if (op === 'begin') {
+      db.beginTransaction();
+      result = chalk.green('Transaction started');
+    } else if (op === 'commit') {
+      db.commit();
+      result = chalk.green('Transaction committed');
+    } else if (op === 'rollback') {
+      db.rollback();
+      result = chalk.yellow('Transaction rolled back');
+    } else if (op === 'transaction') {
+      // Batch transaction
+      const ans = await inquirer.prompt({
+        type: 'editor',
+        name: 'ops',
+        message: 'Batch ops (JSON array):'
+      });
+      try {
+        const ops = JSON.parse(ans.ops);
+        db.transactionSync(ops);
+        result = chalk.green('Batch transaction successful');
+      } catch (e) {
+        result = chalk.red('Transaction failed: ' + e.message);
+      }
+    } else if (op === 'start-cleanup') {
+      const ans = await inquirer.prompt({
+        type: 'input',
+        name: 'interval',
+        message: 'Cleanup interval (ms):',
+        default: 60000
+      });
+      db.startScheduledCleanup(Number(ans.interval));
+      result = chalk.green('Scheduled cleanup started');
+    } else if (op === 'stop-cleanup') {
+      db.stopScheduledCleanup();
+      result = chalk.yellow('Scheduled cleanup stopped');
+    } else if (op === 'db-list') {
+      if (dbManager) {
+        result = dbManager.list();
+      } else {
+        result = chalk.red('Multi-DB manager not available');
+      }
+    } else if (op === 'db-open') {
+      if (dbManager) {
+        const ans = await inquirer.prompt({
+          type: 'input',
+          name: 'file',
+          message: 'DB file to open:'
+        });
+        dbManager.open(ans.file, { password: argv.password });
+        result = chalk.green('DB opened: ' + ans.file);
+      } else {
+        result = chalk.red('Multi-DB manager not available');
+      }
+    } else if (op === 'db-close') {
+      if (dbManager) {
+        const ans = await inquirer.prompt({
+          type: 'input',
+          name: 'file',
+          message: 'DB file to close:'
+        });
+        dbManager.close(ans.file);
+        result = chalk.yellow('DB closed: ' + ans.file);
+      } else {
+        result = chalk.red('Multi-DB manager not available');
+      }
+    } else if (op === 'switch') {
+      if (dbManager) {
+        const ans = await inquirer.prompt({
+          type: 'input',
+          name: 'file',
+          message: 'Switch to DB file:'
+        });
+        db = dbManager.get(ans.file) || new AlphaBase({ filePath: path.resolve(ans.file), password: argv.password });
+        result = chalk.green('Switched to: ' + ans.file);
+      } else {
+        result = chalk.red('Multi-DB manager not available');
+      }
       result = db.exportSync();
     } else if (op === 'backup') {
       const backupPath = await db.backup();

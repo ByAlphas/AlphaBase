@@ -1,5 +1,5 @@
 // AlphaBase only benchmark
-const AlphaBase = require('./index');
+const AlphaBase = require('./alpha');
 const fs = require('fs');
 const path = require('path');
 
