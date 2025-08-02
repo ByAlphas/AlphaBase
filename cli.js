@@ -1,10 +1,11 @@
 const AlphaBase = require('./alpha');
+const AlphaServer = require('./server');
+const { JWTAuth, AuditLogger, RSAEncryption } = require('./security');
 const AlphaBaseManager = require('./alpha').AlphaBaseManager || null;
 const path = require('path');
 const fs = require('fs');
 const inquirer = require('inquirer');
 const boxen = require('boxen');
-const chalk = require('chalk');
 const yargs = require('yargs/yargs');
 
 
@@ -91,21 +92,21 @@ async function runInteractive() {
       try {
         value = JSON.parse(ans.value);
       } catch {
-        console.log(chalk.red('Geçersiz JSON!'));
+        console.log('Geçersiz JSON!');
         continue;
       }
       await db.set(key, value);
-      result = chalk.green('Set: ' + key);
+      result = 'Set: ' + key;
     } else if (op === 'get') {
       result = db.getSync(key);
     } else if (op === 'delete') {
       await db.delete(key);
-      result = chalk.yellow('Deleted: ' + key);
+      result = 'Deleted: ' + key;
     } else if (op === 'has') {
       result = db.hasSync(key);
     } else if (op === 'clear') {
       await db.clear();
-      result = chalk.red('Database cleared');
+      result = 'Database cleared';
     } else if (op === 'all') {
       result = db.allSync();
     } else if (op === 'stats') {
@@ -119,11 +120,11 @@ async function runInteractive() {
       try {
         value = JSON.parse(ans.value);
       } catch {
-        console.log(chalk.red('Geçersiz JSON!'));
+        console.log('Geçersiz JSON!');
         continue;
       }
       db.importSync(value);
-      result = chalk.green('Import successful');
+      result = 'Import successful';
     } else if (op === 'export') {
     } else if (op === 'export-enc') {
       // Export with encryption
@@ -139,9 +140,9 @@ async function runInteractive() {
       });
       try {
         db.exportCollection(ans.collection, fileAns.file, { encrypt: true });
-        result = chalk.green('Encrypted export successful');
+        result = 'Encrypted export successful';
       } catch (e) {
-        result = chalk.red('Export failed: ' + e.message);
+        result = 'Export failed: ' + e.message;
       }
     } else if (op === 'import-enc') {
       // Import with auto-decrypt
@@ -157,19 +158,19 @@ async function runInteractive() {
       });
       try {
         db.importCollection(ans.collection, fileAns.file);
-        result = chalk.green('Encrypted import successful');
+        result = 'Encrypted import successful';
       } catch (e) {
-        result = chalk.red('Import failed: ' + e.message);
+        result = 'Import failed: ' + e.message;
       }
     } else if (op === 'begin') {
       db.beginTransaction();
-      result = chalk.green('Transaction started');
+      result = 'Transaction started';
     } else if (op === 'commit') {
       db.commit();
-      result = chalk.green('Transaction committed');
+      result = 'Transaction committed';
     } else if (op === 'rollback') {
       db.rollback();
-      result = chalk.yellow('Transaction rolled back');
+      result = 'Transaction rolled back';
     } else if (op === 'transaction') {
       // Batch transaction
       const ans = await inquirer.prompt({
@@ -180,9 +181,9 @@ async function runInteractive() {
       try {
         const ops = JSON.parse(ans.ops);
         db.transactionSync(ops);
-        result = chalk.green('Batch transaction successful');
+        result = 'Batch transaction successful';
       } catch (e) {
-        result = chalk.red('Transaction failed: ' + e.message);
+        result = 'Transaction failed: ' + e.message;
       }
     } else if (op === 'start-cleanup') {
       const ans = await inquirer.prompt({
@@ -192,15 +193,15 @@ async function runInteractive() {
         default: 60000
       });
       db.startScheduledCleanup(Number(ans.interval));
-      result = chalk.green('Scheduled cleanup started');
+      result = 'Scheduled cleanup started';
     } else if (op === 'stop-cleanup') {
       db.stopScheduledCleanup();
-      result = chalk.yellow('Scheduled cleanup stopped');
+      result = 'Scheduled cleanup stopped';
     } else if (op === 'db-list') {
       if (dbManager) {
         result = dbManager.list();
       } else {
-        result = chalk.red('Multi-DB manager not available');
+        result = 'Multi-DB manager not available';
       }
     } else if (op === 'db-open') {
       if (dbManager) {
@@ -210,9 +211,9 @@ async function runInteractive() {
           message: 'DB file to open:'
         });
         dbManager.open(ans.file, { password: argv.password });
-        result = chalk.green('DB opened: ' + ans.file);
+        result = 'DB opened: ' + ans.file;
       } else {
-        result = chalk.red('Multi-DB manager not available');
+        result = 'Multi-DB manager not available';
       }
     } else if (op === 'db-close') {
       if (dbManager) {
@@ -222,9 +223,9 @@ async function runInteractive() {
           message: 'DB file to close:'
         });
         dbManager.close(ans.file);
-        result = chalk.yellow('DB closed: ' + ans.file);
+        result = 'DB closed: ' + ans.file;
       } else {
-        result = chalk.red('Multi-DB manager not available');
+        result = 'Multi-DB manager not available';
       }
     } else if (op === 'switch') {
       if (dbManager) {
@@ -234,19 +235,19 @@ async function runInteractive() {
           message: 'Switch to DB file:'
         });
         db = dbManager.get(ans.file) || new AlphaBase({ filePath: path.resolve(ans.file), password: argv.password });
-        result = chalk.green('Switched to: ' + ans.file);
+        result = 'Switched to: ' + ans.file;
       } else {
-        result = chalk.red('Multi-DB manager not available');
+        result = 'Multi-DB manager not available';
       }
       result = db.exportSync();
     } else if (op === 'backup') {
       const backupPath = await db.backup();
-      result = chalk.green('Backup created: ' + backupPath);
+      result = 'Backup created: ' + backupPath;
     }
     if (result !== undefined) {
       let out;
       if (typeof result === 'object') {
-        out = boxen(chalk.cyan(JSON.stringify(result, null, 2)), { padding: 1, borderColor: 'blue' });
+        out = boxen(JSON.stringify(result, null, 2), { padding: 1, borderColor: 'blue' });
       } else {
         out = boxen(result.toString(), { padding: 1, borderColor: 'green' });
       }
@@ -289,6 +290,77 @@ async function runInteractive() {
     } else if (cmd === 'switch') {
       db = new AlphaBase({ filePath: path.resolve(argv.file), password: argv.password });
       console.log('Switched to file:', argv.file);
+    } else if (cmd === 'server') {
+      // Security check: Require explicit --allow-server flag
+      if (!argv.allowServer && !argv['allow-server']) {
+        console.log('❌ Security: Server start requires explicit permission');
+        console.log('💡 Add --allow-server flag to start the server:');
+        console.log('   node cli.js server --allow-server --port 3000');
+        console.log('   This prevents accidental server exposure.');
+        return;
+      }
+      
+      // Start HTTP server
+      const serverOptions = {
+        allowServerStart: true, // Internal permission flag
+        port: argv.port || 3000,
+        host: argv.host || 'localhost',
+        database: argv.file,
+        password: argv.password,
+        encryption: argv.encryption || 'AES',
+        jwtSecret: argv.jwtSecret || 'alphabase-secret',
+        auth: argv.auth !== false,
+        audit: argv.audit !== false
+      };
+      
+      console.log('🔐 Starting AlphaBase Server with authentication...');
+      console.log(`   Database: ${serverOptions.database}`);
+      console.log(`   Auth: ${serverOptions.auth ? 'Enabled' : 'Disabled'}`);
+      console.log(`   Audit: ${serverOptions.audit ? 'Enabled' : 'Disabled'}`);
+      
+      const server = new AlphaServer(serverOptions);
+      server.start();
+      console.log(`✅ AlphaBase Server started at http://${serverOptions.host}:${serverOptions.port}`);
+      console.log('🛑 Press Ctrl+C to stop the server');
+    } else if (cmd === 'token') {
+      // JWT token operations
+      if (argv.create) {
+        const payload = JSON.parse(argv.payload || '{"user":"default"}');
+        const token = db.createToken(payload);
+        console.log('Token:', token);
+      } else if (argv.verify && argv.token) {
+        const result = db.verifyToken(argv.token);
+        console.log('Verification result:', result);
+      } else {
+        console.log('Usage: --create --payload \'{"user":"name"}\' or --verify --token <token>');
+      }
+    } else if (cmd === 'rsa') {
+      // RSA operations
+      if (argv.generate) {
+        const keys = db.generateRSAKeys();
+        console.log('RSA Keys generated:');
+        console.log('Public Key:', keys.publicKey);
+        console.log('Private Key:', keys.privateKey);
+      } else if (argv.encrypt && argv.data && argv.publicKey) {
+        const encrypted = db.rsaEncrypt(argv.data, argv.publicKey);
+        console.log('Encrypted:', encrypted);
+      } else if (argv.decrypt && argv.data && argv.privateKey) {
+        const decrypted = db.rsaDecrypt(argv.data, argv.privateKey);
+        console.log('Decrypted:', decrypted);
+      } else {
+        console.log('Usage: --generate or --encrypt --data <data> --publicKey <key> or --decrypt --data <data> --privateKey <key>');
+      }
+    } else if (cmd === 'audit') {
+      // Audit log operations
+      if (argv.view) {
+        const logs = db.getAuditLogs();
+        console.log('Audit Logs:');
+        logs.forEach(log => {
+          console.log(`${log.timestamp} - ${log.operation} - ${log.key} - ${log.user}`);
+        });
+      } else {
+        console.log('Usage: --view to show audit logs');
+      }
     } else {
       yargs.showHelp();
     }

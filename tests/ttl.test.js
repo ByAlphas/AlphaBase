@@ -11,7 +11,13 @@ describe('AlphaBase TTL', () => {
     db = new AlphaBase({ filePath: testFile });
   });
 
-  afterAll(() => {
+  afterEach(async () => {
+    if (db && db.cleanup) {
+      await db.cleanup();
+    }
+  });
+
+  afterAll(async () => {
     if (fs.existsSync(testFile)) fs.unlinkSync(testFile);
   });
 
