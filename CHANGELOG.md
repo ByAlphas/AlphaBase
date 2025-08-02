@@ -1,4 +1,15 @@
-## [3.0.0] - 2025-08-01
+## [3.0.1] - 2025-08-03
+
+### Fixed 🐛
+- **NPM Package**: Added .npmignore to exclude development files and reduce package size
+- **Performance Logs Control**: Fixed environment variable handling for performance logs
+- **Documentation**: Corrected release date and version references
+
+### Added 🚀
+- **NPM Optimization**: Reduced package size by excluding test files and development tools
+- **Performance Logs**: Environment variable `SHOW_PERFORMANCE_LOGS=true` for detailed benchmarks
+
+## [3.0.0] - 2025-08-03
 
 ### Added 🚀
 - **Security Module**: JWT authentication, RSA encryption, audit logging, data integrity verification
