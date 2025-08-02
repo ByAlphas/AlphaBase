@@ -1,15 +1,25 @@
 {
   "name": "alphabase",
-  "version": "2.0.0",
-  "description": "AlphaBase, Modern file-based key-value database with multi-encryption, TTL, backup, import/export, transactions, and CLI support.",
+  "version": "3.0.0",
+  "description": "AlphaBase V3.0 - Advanced file-based database with JWT authentication, RSA encryption, audit logging, HTTP server, and comprehensive security features.",
   "main": "alpha.js",
   "types": "alpha.d.ts",
   "scripts": {
-    "test": "jest",
+    "test": "jest --runInBand --no-cache --forceExit",
     "test:watch": "jest --watchAll",
     "test:coverage": "jest --coverage",
+    "test:performance": "jest tests/performance.test.js --verbose",
+    "test:performance-logs": "node -e \"process.env.SHOW_PERFORMANCE_LOGS='true'\" && jest --runInBand --no-cache --forceExit",
+    "test:verify": "node verify-tests.js",
+    "test:manual": "node manual-test.js",
+    "benchmark": "node benchmark.js",
+    "benchmark:performance": "node -e \"console.log('=== AlphaBase V3.0.0 Performance Benchmark ==='); require('./benchmark.js')\"",
     "lint": "npx eslint . --ext .js,.ts",
-    "type-check": "npx tsc --noEmit"
+    "type-check": "npx tsc --noEmit",
+    "server": "node cli.js server --allow-server",
+    "cli": "node cli.js",
+    "docs": "node -e \"console.log('AlphaBase V3.0.0 Professional - See README.md for documentation')\"",
+    "profile": "node --prof benchmark.js && node --prof-process isolate-*.log > profile.txt"
   },
   "keywords": [
     "database",
@@ -17,10 +27,22 @@
     "json",
     "file-based",
     "lightweight",
-    "alphabase"
+    "alphabase",
+    "jwt",
+    "rsa",
+    "encryption",
+    "audit",
+    "server",
+    "rest-api",
+    "performance",
+    "optimization",
+    "caching",
+    "connection-pool",
+    "professional",
+    "enterprise"
   ],
   "author": {
-    "name": "BigBaseAlpha Team",
+    "name": "ByAlphas",
     "url": "https://github.com/ByAlphas/alphabase"
   },
   "license": "BSD-2-Clause",
@@ -45,6 +67,7 @@
     "express": "^5.1.0",
     "inquirer": "^12.8.2",
     "inquirer-autocomplete-prompt": "^3.0.1",
+    "jsonwebtoken": "^9.0.0",
     "yargs": "^18.0.0"
   }
 }

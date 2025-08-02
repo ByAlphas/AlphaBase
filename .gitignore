@@ -3,3 +3,31 @@ node_modules/
 backups/
 testdb.json
 alpha.db.json
+
+# Testing and temporary files
+*.tmp
+test-*.json
+*-test.json
+test-results.txt
+jest-runner.js
+direct-test.js
+run-jest-tests.js
+show-test-status.js
+simple-test.js
+manual-test.js
+verify-tests.js
+
+# Production database files
+alphabase.json
+alphabase-server.json
+*.json.enc
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Documentation temp files
+JEST_FIX_COMPLETE.md
+OPTIMIZATION_COMPLETE.md

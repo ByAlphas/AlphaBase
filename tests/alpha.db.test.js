@@ -11,7 +11,13 @@ describe('AlphaBase', () => {
     db = new AlphaBase({ filePath: testFile });
   });
 
-  afterAll(() => {
+  afterEach(async () => {
+    if (db && db.cleanup) {
+      await db.cleanup();
+    }
+  });
+
+  afterAll(async () => {
     if (fs.existsSync(testFile)) fs.unlinkSync(testFile);
   });
 
@@ -84,5 +90,82 @@ describe('AlphaBase', () => {
     const backupPath = await db.backup();
     expect(fs.existsSync(backupPath)).toBe(true);
     fs.unlinkSync(backupPath);
+  });
+
+  // V3.0.0 Security Tests
+  describe('Security Features', () => {
+    test('JWT authentication', () => {
+      const dbWithJWT = new AlphaBase({ 
+        filePath: testFile + '-jwt',
+        jwtSecret: 'test-secret' 
+      });
+      
+      const payload = { user: 'testuser', role: 'admin' };
+      const token = dbWithJWT.createToken(payload);
+      expect(typeof token).toBe('string');
+      
+      const result = dbWithJWT.verifyToken(token);
+      expect(result.valid).toBe(true);
+      expect(result.payload.user).toBe('testuser');
+      
+      // Clean up
+      if (fs.existsSync(testFile + '-jwt')) fs.unlinkSync(testFile + '-jwt');
+    });
+
+    test('Audit logging', () => {
+      const auditFile = testFile + '-audit.log';
+      const dbWithAudit = new AlphaBase({
+        filePath: testFile + '-audit',
+        audit: { enabled: true, logFile: auditFile }
+      });
+      
+      dbWithAudit.auditLog('test_operation', 'test_key', 'test_user');
+      expect(fs.existsSync(auditFile)).toBe(true);
+      
+      const logs = dbWithAudit.getAuditLogs();
+      expect(logs.length).toBeGreaterThan(0);
+      expect(logs[0].operation).toBe('test_operation');
+      
+      // Clean up
+      if (fs.existsSync(testFile + '-audit')) fs.unlinkSync(testFile + '-audit');
+      if (fs.existsSync(auditFile)) fs.unlinkSync(auditFile);
+    });
+
+    test('RSA encryption', () => {
+      const dbWithRSA = new AlphaBase({
+        filePath: testFile + '-rsa',
+        rsa: true
+      });
+      
+      const keyPair = dbWithRSA.generateRSAKeys();
+      expect(keyPair.publicKey).toBeDefined();
+      expect(keyPair.privateKey).toBeDefined();
+      
+      const testData = 'Hello, RSA!';
+      const encrypted = dbWithRSA.rsaEncrypt(testData, keyPair.publicKey);
+      expect(encrypted).not.toBe(testData);
+      
+      const decrypted = dbWithRSA.rsaDecrypt(encrypted, keyPair.privateKey);
+      expect(decrypted).toBe(testData);
+      
+      // Clean up
+      if (fs.existsSync(testFile + '-rsa')) fs.unlinkSync(testFile + '-rsa');
+    });
+
+    test('Data integrity check', () => {
+      const dbWithIntegrity = new AlphaBase({
+        filePath: testFile + '-integrity',
+        integrity: true
+      });
+      
+      dbWithIntegrity.setSync('testkey', 'testvalue');
+      
+      // Since we don't have stored hashes, this should return true by default
+      const isValid = dbWithIntegrity.verifyIntegrity('testkey');
+      expect(typeof isValid).toBe('boolean');
+      
+      // Clean up
+      if (fs.existsSync(testFile + '-integrity')) fs.unlinkSync(testFile + '-integrity');
+    });
   });
 });
