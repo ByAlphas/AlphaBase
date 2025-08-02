@@ -1,0 +1,54 @@
+# Development files
+tests/
+*.test.js
+jest.config.js
+.github/
+.vscode/
+.idea/
+
+# Documentation
+CHANGELOG.md
+README-dev.md
+docs/
+examples/
+
+# Test and temp files
+test-*.json
+*-test.json
+*.tmp
+test-results.txt
+benchmark.js
+demo-v3.js
+manual-test.js
+verify-tests.js
+direct-test.js
+jest-runner.js
+run-jest-tests.js
+show-test-status.js
+simple-test.js
+
+# Build and development
+coverage/
+.nyc_output/
+*.log
+node_modules/
+
+# Production database files (user files)
+alphabase.json
+alphabase-server.json
+*.json.enc
+backups/
+
+# Config files (keep only essential)
+.eslintrc*
+.prettierrc*
+tsconfig.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development documentation
+JEST_FIX_COMPLETE.md
+OPTIMIZATION_COMPLETE.md
+PERFORMANCE.md

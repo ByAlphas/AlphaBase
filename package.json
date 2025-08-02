@@ -1,9 +1,23 @@
 {
   "name": "alphabase",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "AlphaBase V3.0 - Advanced file-based database with JWT authentication, RSA encryption, audit logging, HTTP server, and comprehensive security features.",
   "main": "alpha.js",
   "types": "alpha.d.ts",
+  "files": [
+    "alpha.js",
+    "alpha.d.ts",
+    "index.js",
+    "cli.js",
+    "server.js",
+    "security.js",
+    "performance.js",
+    "pool.js",
+    "config/",
+    "public/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "jest --runInBand --no-cache --forceExit",
     "test:watch": "jest --watchAll",
