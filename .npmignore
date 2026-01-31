@@ -1,54 +1,65 @@
-# Development files
+# Source files (TypeScript source not needed in npm, only dist/)
+src/
+*.ts
+!*.d.ts
+
+# Tests
 tests/
 *.test.js
-jest.config.js
-.github/
-.vscode/
-.idea/
-
-# Documentation
-CHANGELOG.md
-README-dev.md
-docs/
-examples/
-
-# Test and temp files
-test-*.json
-*-test.json
-*.tmp
-test-results.txt
+*.test.ts
+*.spec.js
+*.spec.ts
 benchmark.js
-demo-v3.js
-manual-test.js
-verify-tests.js
-direct-test.js
-jest-runner.js
-run-jest-tests.js
-show-test-status.js
-simple-test.js
+jest.config.js
 
-# Build and development
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Build artifacts and logs
+*.log
+*.tgz
+*.tsbuildinfo
+bench_tmp/
 coverage/
 .nyc_output/
-*.log
-node_modules/
 
-# Production database files (user files)
-alphabase.json
-alphabase-server.json
-*.json.enc
-backups/
-
-# Config files (keep only essential)
+# Configuration files
+.gitignore
 .eslintrc*
 .prettierrc*
 tsconfig.json
 
-# OS files
+# Example and temporary files
+example.ts
+example.db.json
+*.db.json
+*-server.json
+*-audit.log
+test-*.json
+*.enc
+*-integrity
+*.tmp
+test-results.txt
+testdb.json
+alpha.db.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Development documentation
-JEST_FIX_COMPLETE.md
-OPTIMIZATION_COMPLETE.md
-PERFORMANCE.md
+# User data (should not be in npm package)
+alphabase.json
+alphabase-server.json
+backups/
+tests/backups/
+tests/test-backup-*/
+tests/.temp/

@@ -16,18 +16,18 @@ function getDbFiles() {
 const argv = yargs(process.argv.slice(2))
   .option('file', {
     alias: 'f',
-    describe: 'Veritabanı dosya yolu',
+    describe: 'Database file path',
     type: 'string',
     default: 'alphabase.json'
   })
   .option('password', {
     alias: 'p',
-    describe: 'Veritabanı şifresi (şifreleme için)',
+    describe: 'Database password (for encryption)',
     type: 'string'
   })
   .option('interactive', {
     alias: 'i',
-    describe: 'Etkileşimli mod',
+    describe: 'Interactive mode',
     type: 'boolean',
     default: false
   })
@@ -45,7 +45,7 @@ async function runInteractive() {
     const { selectedFile } = await inquirer.prompt({
       type: 'list',
       name: 'selectedFile',
-      message: 'Veritabanı dosyasını seçin:',
+      message: 'Select database file:',
       choices: files,
       default: dbFile
     });
@@ -54,7 +54,7 @@ async function runInteractive() {
     const { op } = await inquirer.prompt({
       type: 'list',
       name: 'op',
-      message: 'İşlem seçin:',
+      message: 'Select operation:',
       choices: [
         'get', 'set', 'delete', 'has', 'clear', 'all', 'stats', 'import', 'export', 'export-enc', 'import-enc',
         'backup', 'begin', 'commit', 'rollback', 'transaction', 'start-cleanup', 'stop-cleanup',
@@ -70,7 +70,7 @@ async function runInteractive() {
         const ans = await inquirer.prompt({
           type: 'list',
           name: 'key',
-          message: 'Anahtar:',
+          message: 'Key:',
           choices: keys
         });
         key = ans.key;
@@ -78,7 +78,7 @@ async function runInteractive() {
         const ans = await inquirer.prompt({
           type: 'input',
           name: 'key',
-          message: 'Anahtar (yeni veya mevcut):'
+          message: 'Key (new or existing):'
         });
         key = ans.key;
       }
@@ -87,12 +87,12 @@ async function runInteractive() {
       const ans = await inquirer.prompt({
         type: 'editor',
         name: 'value',
-        message: 'Değer (JSON):'
+        message: 'Value (JSON):'
       });
       try {
         value = JSON.parse(ans.value);
       } catch {
-        console.log('Geçersiz JSON!');
+        console.log('Invalid JSON!');
         continue;
       }
       await db.set(key, value);
@@ -120,7 +120,7 @@ async function runInteractive() {
       try {
         value = JSON.parse(ans.value);
       } catch {
-        console.log('Geçersiz JSON!');
+        console.log('Invalid JSON!');
         continue;
       }
       db.importSync(value);

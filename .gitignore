@@ -1,33 +1,46 @@
+# Dependencies
 node_modules/
-*.log
-backups/
-testdb.json
-alpha.db.json
 
-# Testing and temporary files
+# Build output (should not be in git, only in npm)
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing files
+tests/backups/
+tests/test-backup-*/
+tests/.temp/
+tests/test-streaming-data/
 *.tmp
 test-*.json
 *-test.json
 test-results.txt
-jest-runner.js
-direct-test.js
-run-jest-tests.js
-show-test-status.js
-simple-test.js
-manual-test.js
-verify-tests.js
 
-# Production database files
+# Database files (user data, should not be in git)
+backups/
+testdb.json
+alpha.db.json
 alphabase.json
 alphabase-server.json
 *.json.enc
+*-audit.log
+*-integrity
+example.db.json
 
 # IDE and OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+*~
 
-# Documentation temp files
-JEST_FIX_COMPLETE.md
-OPTIMIZATION_COMPLETE.md
+# Coverage reports
+coverage/
+.nyc_output/
