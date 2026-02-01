@@ -64,11 +64,13 @@ cli.command(
 
     try {
       const db = new AlphaBase(options);
+      await db.initialize();
       console.log(`✅ Database created: ${filePath}`);
       console.log(`   Encryption: ${argv.encrypt ? '✓ Enabled' : '✗ Disabled'}`);
       if (argv.ttl) {
         console.log(`   Default TTL: ${argv.ttl}ms`);
       }
+      await db.close();
     } catch (error) {
       console.error(`❌ Hata: ${error.message}`);
       process.exit(1);
@@ -123,7 +125,7 @@ cli.command(
       }
 
       const backup = db.backup.create(options);
-      console.log(`✅ Backup created:`);
+      console.log('✅ Backup created:');
       console.log(`   File: ${backup.filename}`);
       console.log(`   Size: ${(backup.size / 1024).toFixed(2)} KB`);
       console.log(`   Records: ${backup.keys} keys`);

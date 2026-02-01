@@ -409,7 +409,7 @@ async function runMediumBenchmark() {
   console.log(`Total Records: ${formatNumber(results.recordCount)}`);
   console.log(`Total Operations: ${formatNumber(metrics.counters.alphabase_operations_total)}`);
   console.log(`Cache Hit Rate: ${(metrics.counters.alphabase_cache_hits / metrics.counters.alphabase_reads_total * 100).toFixed(1)}%`);
-  console.log(`Indexes: 3 (email, city, age)`);
+  console.log('Indexes: 3 (email, city, age)');
   console.log(`File Size: ${formatSize(fileSize)}`);
   console.log('\nOperation Performance:');
   results.operations.forEach(op => {
@@ -497,7 +497,7 @@ async function runHardBenchmark() {
   await new Promise((resolve, reject) => {
     const stream = db.createReadStream({ batchSize: 1000 });
     
-    stream.on('data', (chunk) => {
+    stream.on('data', (_chunk) => {
       streamCount++;
     });
     
@@ -535,7 +535,7 @@ async function runHardBenchmark() {
   const complexTime = timer3.stop();
 
   console.log(`   ✓ Found ${formatNumber(complexResult.total)} matches in ${formatTime(complexTime)}`);
-  console.log(`   ✓ Returned first 100 results\n`);
+  console.log('   ✓ Returned first 100 results\n');
 
   // Test 4: Parallel Query Execution
   console.log('⚡ Test 4: Parallel Query Execution (10 concurrent queries)...');
@@ -666,7 +666,7 @@ async function runHardBenchmark() {
     fs.unlinkSync(backupPath);
   } else {
     console.log(`   ✓ Backup created in ${formatTime(backupTime)}`);
-    console.log(`   ⚠️  Backup path not available\n`);
+    console.log('   ⚠️  Backup path not available\n');
   }
 
   // Final Summary
@@ -680,7 +680,7 @@ async function runHardBenchmark() {
   console.log(`Read Operations: ${formatNumber(metrics.counters.alphabase_reads_total)}`);
   console.log(`Write Operations: ${formatNumber(metrics.counters.alphabase_writes_total)}`);
   console.log(`Cache Hit Rate: ${(metrics.counters.alphabase_cache_hits / metrics.counters.alphabase_reads_total * 100).toFixed(1)}%`);
-  console.log(`Indexes: 5 (email, city, age, role, score)`);
+  console.log('Indexes: 5 (email, city, age, role, score)');
   console.log(`File Size: ${formatSize(fileSize)}`);
   console.log(`Memory Usage: ${formatSize(memUsage.heapUsed)} / ${formatSize(memUsage.heapTotal)}`);
   console.log('\nOperation Performance:');
