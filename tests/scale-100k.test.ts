@@ -4,8 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const isCI = process.env.CI === 'true' || process.env.SKIP_SCALE_TESTS === 'true';
+const describeOrSkip = isCI ? describe.skip : describe;
 
-describe.skipIf(isCI)('Scale Test - 100K Records', () => {
+describeOrSkip('Scale Test - 100K Records', () => {
   const testDir = path.join(__dirname, 'scale-test-100k');
   const dbPath = path.join(testDir, 'scale-100k.json');
   let db: AlphaBase;
