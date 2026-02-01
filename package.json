@@ -6,8 +6,6 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist/",
-    "cli.js",
-    "cli-advanced.js",
     "README.md",
     "LICENSE",
     "MIGRATION.md",
@@ -29,9 +27,6 @@
     "test:verbose": "jest --verbose",
     "lint": "eslint . --ext .js,.ts --ignore-pattern 'tests/*' --ignore-pattern 'node_modules/*' --ignore-pattern 'dist/*'",
     "type-check": "tsc --noEmit",
-    "server": "node server.js",
-    "cli": "node cli.js",
-    "cli:advanced": "node cli-advanced.js",
     "benchmark": "node benchmark.js",
     "benchmark:easy": "node benchmark.js easy",
     "benchmark:medium": "node benchmark.js medium",
