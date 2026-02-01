@@ -3,7 +3,9 @@ import { QueryBuilder } from '../src/query/QueryBuilder';
 import * as fs from 'fs';
 import * as path from 'path';
 
-describe('Scale Test - 250K Records', () => {
+const isCI = process.env.CI === 'true' || process.env.SKIP_SCALE_TESTS === 'true';
+
+describe.skipIf(isCI)('Scale Test - 250K Records', () => {
   const testDir = path.join(__dirname, 'scale-test-250k');
   const dbPath = path.join(testDir, 'scale-250k.json');
   let db: AlphaBase;

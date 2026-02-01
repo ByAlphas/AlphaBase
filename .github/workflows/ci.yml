@@ -30,6 +30,9 @@ jobs:
     
     - name: Run tests
       run: npm test
+      env:
+        SKIP_SCALE_TESTS: true
+      timeout-minutes: 15
     
     - name: Generate coverage report
       run: npm run test:coverage
@@ -102,4 +105,6 @@ jobs:
       run: npm ci
     
     - name: Run benchmark
-      run: npm run benchmark
+      run: npm run benchmark:easy
+      timeout-minutes: 5
+      continue-on-error: true

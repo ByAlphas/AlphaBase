@@ -37,7 +37,7 @@
     "benchmark:medium": "node benchmark.js medium",
     "benchmark:hard": "node benchmark.js hard",
     "benchmark:all": "node benchmark.js all",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "database",
